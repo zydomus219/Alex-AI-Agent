@@ -81,14 +81,14 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
 
   if (isLoading) {
     return (
-      <div className="w-80 border-r bg-background p-4">
+      <div className="w-64 border-r bg-background p-4">
         <div className="text-center">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="w-80 border-r bg-background flex flex-col h-full">
+    <div className="w-64 border-r bg-background flex flex-col h-full">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Knowledge Bases</h2>

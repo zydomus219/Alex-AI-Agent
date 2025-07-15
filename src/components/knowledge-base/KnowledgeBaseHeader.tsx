@@ -29,12 +29,6 @@ export const KnowledgeBaseHeader = ({ itemCount }: KnowledgeBaseHeaderProps) => 
             <Badge variant="secondary" className="bg-purple-500/20 text-purple-200 border-purple-500/30">
               {itemCount} items
             </Badge>
-            <Link to="/chat">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Brain className="h-4 w-4 mr-2" />
-                Train & Chat
-              </Button>
-            </Link>
           </div>
         </div>
       </div>

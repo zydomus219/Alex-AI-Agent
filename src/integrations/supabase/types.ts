@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          embedding: string | null
           id: string
           name: string
           updated_at: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          embedding?: string | null
           id?: string
           name: string
           updated_at?: string
@@ -34,6 +36,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          embedding?: string | null
           id?: string
           name?: string
           updated_at?: string
@@ -45,7 +48,6 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
-          embedding: string | null
           file_name: string | null
           file_path: string | null
           id: string
@@ -60,7 +62,6 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
-          embedding?: string | null
           file_name?: string | null
           file_path?: string | null
           id?: string
@@ -75,7 +76,6 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
-          embedding?: string | null
           file_name?: string | null
           file_path?: string | null
           id?: string
