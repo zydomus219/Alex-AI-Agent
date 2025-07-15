@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { extractPDFContent } from '@/services/contentExtractor';
 
 export interface Agent {
   id: string;
@@ -8,11 +10,7 @@ export interface Agent {
   description: string | null;
   type: 'inbound' | 'outbound';
   knowledge_base_id: string;
-  greeting_prompt: string | null;
-  message_prompt: string | null;
   prompt_content: string | null;
-  prompt_source: 'manual' | 'pdf' | null;
-  prompt_file_name: string | null;
   status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
@@ -133,6 +131,35 @@ export const useAgents = () => {
     }
   };
 
+  const createAgentWithPrompt = async (
+    agentData: Omit<Agent, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'prompt_content'>,
+    promptInput: { type: 'manual' | 'pdf'; greetingPrompt?: string; messagePrompt?: string; file?: File }
+  ) => {
+    try {
+      let promptContent = '';
+
+      if (promptInput.type === 'manual') {
+        // Combine greeting and message prompts
+        promptContent = `${promptInput.greetingPrompt || ''}\n\n${promptInput.messagePrompt || ''}`.trim();
+      } else if (promptInput.type === 'pdf' && promptInput.file) {
+        // Extract content from PDF using backend
+        const extractionResult = await extractPDFContent(promptInput.file);
+        if (!extractionResult.success) {
+          throw new Error(extractionResult.error || 'Failed to extract PDF content');
+        }
+        promptContent = extractionResult.content;
+      }
+
+      return await createAgent({
+        ...agentData,
+        prompt_content: promptContent,
+      });
+    } catch (error) {
+      console.error('Error creating agent with prompt:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchAgents();
   }, []);
@@ -143,6 +170,7 @@ export const useAgents = () => {
     createAgent,
     updateAgent,
     deleteAgent,
+    createAgentWithPrompt,
     refetch: fetchAgents,
   };
 };

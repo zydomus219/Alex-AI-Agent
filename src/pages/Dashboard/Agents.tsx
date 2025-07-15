@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 import { useKnowledgeBases } from '@/hooks/useKnowledgeBases';
 import { useAgents } from '@/hooks/useAgents';
+import { AgentUsageDialog } from '@/components/AgentUsageDialog';
 import { Bot, Plus, Phone, PhoneCall, MessageSquare, Settings, Play, Upload, Edit, Trash2 } from 'lucide-react';
 
 const DEFAULT_GREETING_TEMPLATE = `Hello! I'm your AI assistant. I'm here to help you with any questions you might have. How can I assist you today?`;
@@ -22,20 +24,22 @@ const DEFAULT_MESSAGE_TEMPLATE = `Thank you for your message. I'm processing you
 const Agents = () => {
   const { toast } = useToast();
   const { knowledgeBases } = useKnowledgeBases();
-  const { agents, loading, createAgent, updateAgent, deleteAgent } = useAgents();
+  const { agents, loading, createAgentWithPrompt, updateAgent, deleteAgent } = useAgents();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<any>(null);
+  const [usageAgent, setUsageAgent] = useState<any>(null);
   const [newAgent, setNewAgent] = useState({
     name: '',
     description: '',
     type: 'inbound' as 'inbound' | 'outbound',
     knowledge_base_id: '',
-    greeting_prompt: DEFAULT_GREETING_TEMPLATE,
-    message_prompt: DEFAULT_MESSAGE_TEMPLATE,
-    prompt_content: '',
-    prompt_source: 'manual' as 'manual' | 'pdf',
-    prompt_file_name: '',
     status: 'active' as 'active' | 'inactive',
+  });
+  const [promptData, setPromptData] = useState({
+    type: 'manual' as 'manual' | 'pdf',
+    greetingPrompt: DEFAULT_GREETING_TEMPLATE,
+    messagePrompt: DEFAULT_MESSAGE_TEMPLATE,
+    file: null as File | null,
   });
 
   const handleCreateAgent = async () => {
@@ -58,7 +62,7 @@ const Agents = () => {
     }
 
     try {
-      await createAgent(newAgent);
+      await createAgentWithPrompt(newAgent, promptData);
       resetForm();
       setIsCreateDialogOpen(false);
     } catch (error) {
@@ -91,26 +95,22 @@ const Agents = () => {
       description: '',
       type: 'inbound',
       knowledge_base_id: '',
-      greeting_prompt: DEFAULT_GREETING_TEMPLATE,
-      message_prompt: DEFAULT_MESSAGE_TEMPLATE,
-      prompt_content: '',
-      prompt_source: 'manual',
-      prompt_file_name: '',
       status: 'active',
+    });
+    setPromptData({
+      type: 'manual',
+      greetingPrompt: DEFAULT_GREETING_TEMPLATE,
+      messagePrompt: DEFAULT_MESSAGE_TEMPLATE,
+      file: null,
     });
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type === 'application/pdf') {
-      const updateTarget = isEditing ? editingAgent : newAgent;
-      const setTarget = isEditing ? setEditingAgent : setNewAgent;
-      
-      setTarget(prev => ({
+      setPromptData(prev => ({
         ...prev,
-        prompt_file_name: file.name,
-        prompt_source: 'pdf' as const,
-        prompt_content: `PDF file uploaded: ${file.name}`,
+        file,
       }));
     } else {
       toast({
@@ -119,13 +119,6 @@ const Agents = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleUseAgent = (agent: any) => {
-    toast({
-      title: "Agent Activated",
-      description: `${agent.name} is now ready to use`,
-    });
   };
 
   const getKnowledgeBaseName = (knowledgeBaseId: string) => {
@@ -198,7 +191,7 @@ const Agents = () => {
               
               <div>
                 <Label>Prompts</Label>
-                <Tabs value={newAgent.prompt_source} onValueChange={(value) => setNewAgent(prev => ({ ...prev, prompt_source: value as 'manual' | 'pdf' }))}>
+                <Tabs value={promptData.type} onValueChange={(value) => setPromptData(prev => ({ ...prev, type: value as 'manual' | 'pdf' }))}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="manual">Manual Input</TabsTrigger>
                     <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
@@ -209,8 +202,8 @@ const Agents = () => {
                       <Label htmlFor="greeting-prompt">Greeting Prompt</Label>
                       <Textarea
                         id="greeting-prompt"
-                        value={newAgent.greeting_prompt}
-                        onChange={(e) => setNewAgent(prev => ({ ...prev, greeting_prompt: e.target.value }))}
+                        value={promptData.greetingPrompt}
+                        onChange={(e) => setPromptData(prev => ({ ...prev, greetingPrompt: e.target.value }))}
                         placeholder="Enter greeting prompt template"
                         className="min-h-[80px]"
                       />
@@ -219,8 +212,8 @@ const Agents = () => {
                       <Label htmlFor="message-prompt">Message Prompt</Label>
                       <Textarea
                         id="message-prompt"
-                        value={newAgent.message_prompt}
-                        onChange={(e) => setNewAgent(prev => ({ ...prev, message_prompt: e.target.value }))}
+                        value={promptData.messagePrompt}
+                        onChange={(e) => setPromptData(prev => ({ ...prev, messagePrompt: e.target.value }))}
                         placeholder="Enter message prompt template"
                         className="min-h-[80px]"
                       />
@@ -235,14 +228,14 @@ const Agents = () => {
                           id="pdf-upload"
                           type="file"
                           accept=".pdf"
-                          onChange={(e) => handleFileUpload(e)}
+                          onChange={handleFileUpload}
                           className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
                         />
                         <Upload className="w-4 h-4" />
                       </div>
-                      {newAgent.prompt_file_name && (
+                      {promptData.file && (
                         <p className="text-sm text-muted-foreground mt-2">
-                          Uploaded: {newAgent.prompt_file_name}
+                          Selected: {promptData.file.name}
                         </p>
                       )}
                     </div>
@@ -318,10 +311,10 @@ const Agents = () => {
                     <Button 
                       size="sm" 
                       className="flex-1 gap-2"
-                      onClick={() => handleUseAgent(agent)}
+                      onClick={() => setUsageAgent(agent)}
                     >
                       <Play className="w-4 h-4" />
-                      Use Now
+                      Use Agent
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -417,59 +410,15 @@ const Agents = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
               <div>
-                <Label>Prompts</Label>
-                <Tabs value={editingAgent.prompt_source || 'manual'} onValueChange={(value) => setEditingAgent(prev => ({ ...prev, prompt_source: value as 'manual' | 'pdf' }))}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="manual">Manual Input</TabsTrigger>
-                    <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="manual" className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-greeting-prompt">Greeting Prompt</Label>
-                      <Textarea
-                        id="edit-greeting-prompt"
-                        value={editingAgent.greeting_prompt || ''}
-                        onChange={(e) => setEditingAgent(prev => ({ ...prev, greeting_prompt: e.target.value }))}
-                        placeholder="Enter greeting prompt template"
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-message-prompt">Message Prompt</Label>
-                      <Textarea
-                        id="edit-message-prompt"
-                        value={editingAgent.message_prompt || ''}
-                        onChange={(e) => setEditingAgent(prev => ({ ...prev, message_prompt: e.target.value }))}
-                        placeholder="Enter message prompt template"
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="pdf" className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-pdf-upload">Upload PDF Prompt</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="edit-pdf-upload"
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileUpload(e, true)}
-                          className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
-                        />
-                        <Upload className="w-4 h-4" />
-                      </div>
-                      {editingAgent.prompt_file_name && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Current file: {editingAgent.prompt_file_name}
-                        </p>
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                <Label htmlFor="edit-prompt-content">Prompt Content</Label>
+                <Textarea
+                  id="edit-prompt-content"
+                  value={editingAgent.prompt_content || ''}
+                  onChange={(e) => setEditingAgent(prev => ({ ...prev, prompt_content: e.target.value }))}
+                  placeholder="Enter prompt content"
+                  className="min-h-[120px]"
+                />
               </div>
               
               <div className="flex gap-2 justify-end">
@@ -484,6 +433,13 @@ const Agents = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Agent Usage Dialog */}
+      <AgentUsageDialog
+        agent={usageAgent}
+        isOpen={!!usageAgent}
+        onClose={() => setUsageAgent(null)}
+      />
     </div>
   );
 };

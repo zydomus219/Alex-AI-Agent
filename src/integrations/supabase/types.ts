@@ -18,14 +18,10 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
-          greeting_prompt: string | null
           id: string
           knowledge_base_id: string
-          message_prompt: string | null
           name: string
           prompt_content: string | null
-          prompt_file_name: string | null
-          prompt_source: string | null
           status: string
           type: string
           updated_at: string
@@ -34,14 +30,10 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
-          greeting_prompt?: string | null
           id?: string
           knowledge_base_id: string
-          message_prompt?: string | null
           name: string
           prompt_content?: string | null
-          prompt_file_name?: string | null
-          prompt_source?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -50,14 +42,10 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
-          greeting_prompt?: string | null
           id?: string
           knowledge_base_id?: string
-          message_prompt?: string | null
           name?: string
           prompt_content?: string | null
-          prompt_file_name?: string | null
-          prompt_source?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -107,43 +95,34 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
-          file_name: string | null
-          file_path: string | null
           id: string
           knowledge_base_id: string | null
           status: string
           title: string
           type: string
           updated_at: string
-          url: string | null
           user_id: string
         }
         Insert: {
           content?: string | null
           created_at?: string
-          file_name?: string | null
-          file_path?: string | null
           id?: string
           knowledge_base_id?: string | null
           status?: string
           title: string
           type: string
           updated_at?: string
-          url?: string | null
           user_id: string
         }
         Update: {
           content?: string | null
           created_at?: string
-          file_name?: string | null
-          file_path?: string | null
           id?: string
           knowledge_base_id?: string | null
           status?: string
           title?: string
           type?: string
           updated_at?: string
-          url?: string | null
           user_id?: string
         }
         Relationships: [
