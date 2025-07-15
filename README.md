@@ -1,8 +1,40 @@
-# Welcome to your Lovable project
+# Knowledge Base Content Extractor Frontend
+
+A React-based frontend application for extracting content from PDF files and websites using a FastAPI backend.
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/406c71d9-5826-4e3b-babd-98c6ebabc8f2
+**URL**: https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99
+
+## Setup
+
+### 1. Install Dependencies
+
+```sh
+npm install
+```
+
+### 2. Configure Environment Variables
+
+1. Copy the example environment file:
+   ```sh
+   cp env.example .env
+   ```
+
+2. Edit the `.env` file and configure your backend URL:
+   ```
+   VITE_BACKEND_URL=http://localhost:8000
+   ```
+
+   **Note**: Make sure your backend server is running on the specified URL.
+
+### 3. Start Development Server
+
+```sh
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
 
 ## How can I edit this code?
 
@@ -10,7 +42,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/406c71d9-5826-4e3b-babd-98c6ebabc8f2) and start prompting.
+Simply visit the [Lovable Project](https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
@@ -32,7 +64,9 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Configure environment variables (see above)
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
@@ -50,6 +84,14 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## Environment Variables
+
+The application uses the following environment variables:
+
+- `VITE_BACKEND_URL`: URL of the FastAPI backend server (default: http://localhost:8000)
+- `VITE_SUPABASE_URL`: Supabase project URL (optional)
+- `VITE_SUPABASE_ANON_KEY`: Supabase anonymous key (optional)
+
 ## What technologies are used for this project?
 
 This project is built with:
@@ -59,10 +101,13 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- React Router DOM
+- React Hook Form
+- TanStack Query
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/406c71d9-5826-4e3b-babd-98c6ebabc8f2) and click on Share -> Publish.
+Simply open [Lovable](https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99) and click on Share -> Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 
