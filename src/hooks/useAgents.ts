@@ -1,0 +1,148 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+export interface Agent {
+  id: string;
+  name: string;
+  description: string | null;
+  type: 'inbound' | 'outbound';
+  knowledge_base_id: string;
+  greeting_prompt: string | null;
+  message_prompt: string | null;
+  prompt_content: string | null;
+  prompt_source: 'manual' | 'pdf' | null;
+  prompt_file_name: string | null;
+  status: 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
+
+export const useAgents = () => {
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAgents((data as Agent[]) || []);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch agents",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createAgent = async (agentData: Omit<Agent, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('agents')
+        .insert({
+          ...agentData,
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setAgents(prev => [data as Agent, ...prev]);
+      toast({
+        title: "Success",
+        description: "Agent created successfully",
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create agent",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const updateAgent = async (id: string, updates: Partial<Agent>) => {
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setAgents(prev => prev.map(agent => agent.id === id ? data as Agent : agent));
+      toast({
+        title: "Success",
+        description: "Agent updated successfully",
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error updating agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update agent",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const deleteAgent = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setAgents(prev => prev.filter(agent => agent.id !== id));
+      toast({
+        title: "Success",
+        description: "Agent deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete agent",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
+  return {
+    agents,
+    loading,
+    createAgent,
+    updateAgent,
+    deleteAgent,
+    refetch: fetchAgents,
+  };
+};
