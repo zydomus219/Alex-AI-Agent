@@ -54,6 +54,19 @@ export const KnowledgeItemsList = ({ knowledgeItems, isLoading, onDelete, isDele
     return new Date(dateString).toLocaleString();
   };
 
+  const getItemDescription = (item: KnowledgeItem) => {
+    switch (item.type) {
+      case 'url':
+        return 'Website Content';
+      case 'pdf':
+        return 'PDF Document';
+      case 'text':
+        return 'Custom Text';
+      default:
+        return 'Content';
+    }
+  };
+
   return (
     <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
       <CardHeader>
@@ -88,9 +101,7 @@ export const KnowledgeItemsList = ({ knowledgeItems, isLoading, onDelete, isDele
                       {getStatusIcon(item.status)}
                     </div>
                     <p className="text-white/60 text-sm">
-                      {item.type === 'url' && item.url}
-                      {item.type === 'pdf' && `PDF • ${item.file_name}`}
-                      {item.type === 'text' && 'Custom Text'}
+                      {getItemDescription(item)}
                       <span className="ml-2">• {formatDate(item.created_at)}</span>
                     </p>
                   </div>

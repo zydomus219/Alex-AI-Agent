@@ -69,7 +69,6 @@ const KnowledgeBase = () => {
       const newItem = await createKnowledgeItem.mutateAsync({
         type: 'pdf',
         title: file.name,
-        file_name: file.name,
         status: 'processing',
         knowledge_base_id: selectedKnowledgeBaseId,
       });
@@ -131,7 +130,6 @@ const KnowledgeBase = () => {
       const newItem = await createKnowledgeItem.mutateAsync({
         type: 'url',
         title: 'Processing...',
-        url: urlInput,
         status: 'processing',
         knowledge_base_id: selectedKnowledgeBaseId,
       });
