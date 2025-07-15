@@ -9,18 +9,23 @@ import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 type KnowledgeItem = Tables<'knowledge_items'>;
 type KnowledgeItemInsert = TablesInsert<'knowledge_items'>;
 
-export const useKnowledgeItems = () => {
+export const useKnowledgeItems = (knowledgeBaseId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch knowledge items
   const { data: knowledgeItems = [], isLoading, error } = useQuery({
-    queryKey: ['knowledge-items'],
+    queryKey: ['knowledge-items', knowledgeBaseId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('knowledge_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      if (knowledgeBaseId) {
+        query = query.eq('knowledge_base_id', knowledgeBaseId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as KnowledgeItem[];
@@ -40,7 +45,7 @@ export const useKnowledgeItems = () => {
         },
         () => {
           // Invalidate and refetch knowledge items when any change occurs
-          queryClient.invalidateQueries({ queryKey: ['knowledge-items'] });
+          queryClient.invalidateQueries({ queryKey: ['knowledge-items', knowledgeBaseId] });
         }
       )
       .subscribe();
@@ -48,7 +53,7 @@ export const useKnowledgeItems = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, knowledgeBaseId]);
 
   // Create knowledge item mutation
   const createKnowledgeItem = useMutation({
@@ -66,7 +71,7 @@ export const useKnowledgeItems = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge-items'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledge-items', knowledgeBaseId] });
     },
   });
 
@@ -84,7 +89,7 @@ export const useKnowledgeItems = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge-items'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledge-items', knowledgeBaseId] });
     },
   });
 
@@ -99,7 +104,7 @@ export const useKnowledgeItems = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge-items'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledge-items', knowledgeBaseId] });
       toast({
         title: "Item deleted",
         description: "Knowledge base item has been removed.",

@@ -14,13 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      knowledge_bases: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       knowledge_items: {
         Row: {
           content: string | null
           created_at: string
+          embedding: string | null
           file_name: string | null
           file_path: string | null
           id: string
+          knowledge_base_id: string | null
           status: string
           title: string
           type: string
@@ -31,9 +60,11 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          embedding?: string | null
           file_name?: string | null
           file_path?: string | null
           id?: string
+          knowledge_base_id?: string | null
           status?: string
           title: string
           type: string
@@ -44,9 +75,11 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          embedding?: string | null
           file_name?: string | null
           file_path?: string | null
           id?: string
+          knowledge_base_id?: string | null
           status?: string
           title?: string
           type?: string
@@ -54,7 +87,15 @@ export type Database = {
           url?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_items_knowledge_base_id_fkey"
+            columns: ["knowledge_base_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_bases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
