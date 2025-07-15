@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useKnowledgeBases } from '@/hooks/useKnowledgeBases';
 import { useAgents } from '@/hooks/useAgents';
@@ -24,7 +23,7 @@ const DEFAULT_MESSAGE_TEMPLATE = `Thank you for your message. I'm processing you
 
 const Agents = () => {
   const { toast } = useToast();
-  const { knowledgeBases, isLoading: kbLoading } = useKnowledgeBases();
+  const { knowledgeBases } = useKnowledgeBases();
   const { agents, loading, createAgentWithPrompt, updateAgent, deleteAgent } = useAgents();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<any>(null);
@@ -141,128 +140,121 @@ const Agents = () => {
               Create Agent
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] max-h-[90vh]">
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Create New Agent</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="max-h-[70vh] pr-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="agent-name">Agent Name</Label>
-                  <Input
-                    id="agent-name"
-                    value={newAgent.name}
-                    onChange={(e) => setNewAgent(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter agent name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="agent-description">Description</Label>
-                  <Textarea
-                    id="agent-description"
-                    value={newAgent.description}
-                    onChange={(e) => setNewAgent(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Describe what this agent does"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="agent-type">Agent Type</Label>
-                  <Select value={newAgent.type} onValueChange={(value: 'inbound' | 'outbound') => setNewAgent(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inbound">Inbound (Receives calls/messages)</SelectItem>
-                      <SelectItem value="outbound">Outbound (Makes calls/messages)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="knowledge-base">Knowledge Base</Label>
-                  <Select value={newAgent.knowledge_base_id} onValueChange={(value) => setNewAgent(prev => ({ ...prev, knowledge_base_id: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={kbLoading ? "Loading..." : "Select a knowledge base"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {knowledgeBases.map((kb) => (
-                        <SelectItem key={kb.id} value={kb.id}>{kb.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {knowledgeBases.length === 0 && !kbLoading && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      No knowledge bases found. Create one first.
-                    </p>
-                  )}
-                </div>
-                
-                <div>
-                  <Label>Prompts</Label>
-                  <Tabs value={promptData.type} onValueChange={(value) => setPromptData(prev => ({ ...prev, type: value as 'manual' | 'pdf' }))}>
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="manual">Manual Input</TabsTrigger>
-                      <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="manual" className="space-y-4">
-                      <div>
-                        <Label htmlFor="greeting-prompt">Greeting Prompt</Label>
-                        <Textarea
-                          id="greeting-prompt"
-                          value={promptData.greetingPrompt}
-                          onChange={(e) => setPromptData(prev => ({ ...prev, greetingPrompt: e.target.value }))}
-                          placeholder="Enter greeting prompt template"
-                          className="min-h-[80px]"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="message-prompt">Message Prompt</Label>
-                        <Textarea
-                          id="message-prompt"
-                          value={promptData.messagePrompt}
-                          onChange={(e) => setPromptData(prev => ({ ...prev, messagePrompt: e.target.value }))}
-                          placeholder="Enter message prompt template"
-                          className="min-h-[80px]"
-                        />
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="pdf" className="space-y-4">
-                      <div>
-                        <Label htmlFor="pdf-upload">Upload PDF Prompt</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="pdf-upload"
-                            type="file"
-                            accept=".pdf"
-                            onChange={handleFileUpload}
-                            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
-                          />
-                          <Upload className="w-4 h-4" />
-                        </div>
-                        {promptData.file && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Selected: {promptData.file.name}
-                          </p>
-                        )}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-                
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    resetForm();
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateAgent}>
-                    Create Agent
-                  </Button>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="agent-name">Agent Name</Label>
+                <Input
+                  id="agent-name"
+                  value={newAgent.name}
+                  onChange={(e) => setNewAgent(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter agent name"
+                />
               </div>
-            </ScrollArea>
+              <div>
+                <Label htmlFor="agent-description">Description</Label>
+                <Textarea
+                  id="agent-description"
+                  value={newAgent.description}
+                  onChange={(e) => setNewAgent(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe what this agent does"
+                />
+              </div>
+              <div>
+                <Label htmlFor="agent-type">Agent Type</Label>
+                <Select value={newAgent.type} onValueChange={(value: 'inbound' | 'outbound') => setNewAgent(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inbound">Inbound (Receives calls/messages)</SelectItem>
+                    <SelectItem value="outbound">Outbound (Makes calls/messages)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="knowledge-base">Knowledge Base</Label>
+                <Select value={newAgent.knowledge_base_id} onValueChange={(value) => setNewAgent(prev => ({ ...prev, knowledge_base_id: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a knowledge base" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {knowledgeBases.map((kb) => (
+                      <SelectItem key={kb.id} value={kb.id}>{kb.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label>Prompts</Label>
+                <Tabs value={promptData.type} onValueChange={(value) => setPromptData(prev => ({ ...prev, type: value as 'manual' | 'pdf' }))}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="manual">Manual Input</TabsTrigger>
+                    <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="manual" className="space-y-4">
+                    <div>
+                      <Label htmlFor="greeting-prompt">Greeting Prompt</Label>
+                      <Textarea
+                        id="greeting-prompt"
+                        value={promptData.greetingPrompt}
+                        onChange={(e) => setPromptData(prev => ({ ...prev, greetingPrompt: e.target.value }))}
+                        placeholder="Enter greeting prompt template"
+                        className="min-h-[80px]"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="message-prompt">Message Prompt</Label>
+                      <Textarea
+                        id="message-prompt"
+                        value={promptData.messagePrompt}
+                        onChange={(e) => setPromptData(prev => ({ ...prev, messagePrompt: e.target.value }))}
+                        placeholder="Enter message prompt template"
+                        className="min-h-[80px]"
+                      />
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="pdf" className="space-y-4">
+                    <div>
+                      <Label htmlFor="pdf-upload">Upload PDF Prompt</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="pdf-upload"
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleFileUpload}
+                          className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
+                        />
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      {promptData.file && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Selected: {promptData.file.name}
+                        </p>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+              
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => {
+                  setIsCreateDialogOpen(false);
+                  resetForm();
+                }}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateAgent}>
+                  Create Agent
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -369,78 +361,76 @@ const Agents = () => {
 
       {/* Edit Agent Dialog */}
       <Dialog open={!!editingAgent} onOpenChange={() => setEditingAgent(null)}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh]">
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Agent</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[70vh] pr-4">
-            {editingAgent && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-agent-name">Agent Name</Label>
-                  <Input
-                    id="edit-agent-name"
-                    value={editingAgent.name}
-                    onChange={(e) => setEditingAgent(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter agent name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-agent-description">Description</Label>
-                  <Textarea
-                    id="edit-agent-description"
-                    value={editingAgent.description || ''}
-                    onChange={(e) => setEditingAgent(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Describe what this agent does"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-agent-type">Agent Type</Label>
-                  <Select value={editingAgent.type} onValueChange={(value: 'inbound' | 'outbound') => setEditingAgent(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inbound">Inbound (Receives calls/messages)</SelectItem>
-                      <SelectItem value="outbound">Outbound (Makes calls/messages)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-knowledge-base">Knowledge Base</Label>
-                  <Select value={editingAgent.knowledge_base_id} onValueChange={(value) => setEditingAgent(prev => ({ ...prev, knowledge_base_id: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a knowledge base" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {knowledgeBases.map((kb) => (
-                        <SelectItem key={kb.id} value={kb.id}>{kb.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-prompt-content">Prompt Content</Label>
-                  <Textarea
-                    id="edit-prompt-content"
-                    value={editingAgent.prompt_content || ''}
-                    onChange={(e) => setEditingAgent(prev => ({ ...prev, prompt_content: e.target.value }))}
-                    placeholder="Enter prompt content"
-                    className="min-h-[120px]"
-                  />
-                </div>
-                
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setEditingAgent(null)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleUpdateAgent}>
-                    Update Agent
-                  </Button>
-                </div>
+          {editingAgent && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-agent-name">Agent Name</Label>
+                <Input
+                  id="edit-agent-name"
+                  value={editingAgent.name}
+                  onChange={(e) => setEditingAgent(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter agent name"
+                />
               </div>
-            )}
-          </ScrollArea>
+              <div>
+                <Label htmlFor="edit-agent-description">Description</Label>
+                <Textarea
+                  id="edit-agent-description"
+                  value={editingAgent.description || ''}
+                  onChange={(e) => setEditingAgent(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe what this agent does"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-agent-type">Agent Type</Label>
+                <Select value={editingAgent.type} onValueChange={(value: 'inbound' | 'outbound') => setEditingAgent(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inbound">Inbound (Receives calls/messages)</SelectItem>
+                    <SelectItem value="outbound">Outbound (Makes calls/messages)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-knowledge-base">Knowledge Base</Label>
+                <Select value={editingAgent.knowledge_base_id} onValueChange={(value) => setEditingAgent(prev => ({ ...prev, knowledge_base_id: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a knowledge base" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {knowledgeBases.map((kb) => (
+                      <SelectItem key={kb.id} value={kb.id}>{kb.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-prompt-content">Prompt Content</Label>
+                <Textarea
+                  id="edit-prompt-content"
+                  value={editingAgent.prompt_content || ''}
+                  onChange={(e) => setEditingAgent(prev => ({ ...prev, prompt_content: e.target.value }))}
+                  placeholder="Enter prompt content"
+                  className="min-h-[120px]"
+                />
+              </div>
+              
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setEditingAgent(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateAgent}>
+                  Update Agent
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
