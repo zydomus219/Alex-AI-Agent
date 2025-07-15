@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthProvider';
@@ -11,19 +12,20 @@ export const useKnowledgeBases = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch knowledge bases
+  // Fetch knowledge bases for the current user only
   const {
     data: knowledgeBases = [],
     isLoading,
     error
   } = useQuery({
-    queryKey: ['knowledge_bases'],
+    queryKey: ['knowledge_bases', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
       const { data, error } = await supabase
         .from('knowledge_bases')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -43,10 +45,11 @@ export const useKnowledgeBases = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'knowledge_bases'
+          table: 'knowledge_bases',
+          filter: `user_id=eq.${user.id}`
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['knowledge_bases'] });
+          queryClient.invalidateQueries({ queryKey: ['knowledge_bases', user.id] });
         }
       )
       .subscribe();
@@ -74,17 +77,20 @@ export const useKnowledgeBases = () => {
       return newKnowledgeBase;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge_bases'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledge_bases', user?.id] });
     },
   });
 
   // Update knowledge base
   const updateKnowledgeBase = useMutation({
     mutationFn: async ({ id, ...data }: { id: string } & Partial<KnowledgeBaseInsert>) => {
+      if (!user) throw new Error('User not authenticated');
+
       const { data: updatedKnowledgeBase, error } = await supabase
         .from('knowledge_bases')
         .update(data)
         .eq('id', id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -92,22 +98,25 @@ export const useKnowledgeBases = () => {
       return updatedKnowledgeBase;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge_bases'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledge_bases', user?.id] });
     },
   });
 
   // Delete knowledge base
   const deleteKnowledgeBase = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('knowledge_bases')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge_bases'] });
+      queryClient.invalidateQueries({ queryKey: ['knowledge_bases', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['knowledge_items'] });
     },
   });

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/AuthProvider';
 import { extractPDFContent } from '@/services/contentExtractor';
 
 export interface Agent {
@@ -21,12 +22,20 @@ export const useAgents = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchAgents = async () => {
+    if (!user) {
+      setAgents([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('agents')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -45,7 +54,6 @@ export const useAgents = () => {
 
   const createAgent = async (agentData: Omit<Agent, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -83,6 +91,7 @@ export const useAgents = () => {
         .from('agents')
         .update(updates)
         .eq('id', id)
+        .eq('user_id', user?.id)
         .select()
         .single();
 
@@ -111,7 +120,8 @@ export const useAgents = () => {
       const { error } = await supabase
         .from('agents')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user?.id);
 
       if (error) throw error;
 
@@ -162,7 +172,7 @@ export const useAgents = () => {
 
   useEffect(() => {
     fetchAgents();
-  }, []);
+  }, [user]);
 
   return {
     agents,
