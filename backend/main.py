@@ -154,6 +154,7 @@ async def knowledge_embedding(
         result = generate_embedding(user_id=user_id, Knowledge_id=knowledge_base_id)
         return ContentResponse(
             content=result.get("content", ""),
+            # content="Successed",
             title=result.get("title", ""),
             success=result.get("success", True),
             error=result.get("error", None)
