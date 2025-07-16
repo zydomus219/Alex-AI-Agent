@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/AuthProvider';
 import { extractPDFContent } from '@/services/contentExtractor';
+import { config } from '@/config/env';
 
 export interface Agent {
   id: string;
@@ -141,11 +141,44 @@ export const useAgents = () => {
     }
   };
 
+  const generateKnowledgeEmbedding = async (userId: string, knowledgeBaseId: string) => {
+    try {
+      const response = await fetch(`${config.backend.url}/knowledge_embedding`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          knowledge_base_id: knowledgeBaseId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate knowledge embedding');
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to generate knowledge embedding');
+      }
+
+      console.log('Knowledge embedding generated successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Error generating knowledge embedding:', error);
+      throw error;
+    }
+  };
+
   const createAgentWithPrompt = async (
     agentData: Omit<Agent, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'prompt_content'>,
     promptInput: { type: 'manual' | 'pdf'; greetingPrompt?: string; messagePrompt?: string; file?: File }
   ) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+
       let promptContent = '';
 
       if (promptInput.type === 'manual') {
@@ -160,10 +193,29 @@ export const useAgents = () => {
         promptContent = extractionResult.content;
       }
 
-      return await createAgent({
+      // Create the agent first
+      const newAgent = await createAgent({
         ...agentData,
         prompt_content: promptContent,
       });
+
+      // Generate knowledge embedding for the selected knowledge base
+      try {
+        await generateKnowledgeEmbedding(user.id, agentData.knowledge_base_id);
+        toast({
+          title: "Success",
+          description: "Agent created and knowledge base embedding generated successfully",
+        });
+      } catch (embeddingError) {
+        console.error('Error generating embedding:', embeddingError);
+        toast({
+          title: "Warning",
+          description: "Agent created but failed to generate knowledge base embedding. You may need to regenerate it manually.",
+          variant: "destructive",
+        });
+      }
+
+      return newAgent;
     } catch (error) {
       console.error('Error creating agent with prompt:', error);
       throw error;
