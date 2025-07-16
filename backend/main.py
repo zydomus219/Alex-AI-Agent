@@ -1,16 +1,17 @@
 
+import uuid
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
-import supabase
+from supabase import create_client, Client
 import uvicorn
 import PyPDF2
-import io
+import io, os
 from typing import Optional
 from firecrawl import FirecrawlApp, ScrapeOptions
 from config import FIRECRAWL_API_KEY, CRAWL_SETTINGS  # type: ignore
-from utils import generate_embedding, search_documents, get_response, sanitize_text  # type: ignore
+from utils import generate_embedding, search_matched_knowledgeBases, get_response, sanitize_text  # type: ignore
 
 app = FastAPI(title="Knowledge Base Content Extractor", version="1.0.0")
 
@@ -38,6 +39,7 @@ class ContentResponse(BaseModel):
 
 class SearchBody(BaseModel):
     query: str
+    agent_id: str
 
 @app.get("/")
 async def root():
@@ -168,13 +170,36 @@ async def knowledge_embedding(
         )
 
 
-@app.post("/prompt", response_model=ContentResponse)
+@app.post("/query", response_model=ContentResponse)
 async def get_answer(prompt:SearchBody):
     query = prompt.query
-    # search = search_documents(query)
-    # print("search", search)
-    # content = get_response(query, search.data)
-    content = get_response(query, [])
+    agent_id = prompt.agent_id
+
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    if url is None or key is None:
+        raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
+    supabase: Client = create_client(url, key)
+
+    # Fetch user_id and knowledge_base_id from the agent table using agent_id
+    agent_response = supabase.table("agents") \
+        .select("user_id, knowledge_base_id, prompt_content") \
+        .eq("id", agent_id) \
+        .single() \
+        .execute()
+
+    if not agent_response.data:
+        raise ValueError(f"No agent found with id {agent_id}")
+
+    user_id = agent_response.data.get("user_id")
+    knowledge_base_id = agent_response.data.get("knowledge_base_id")
+    agent_feature = str(agent_response.data.get("prompt_content"))
+
+    if not user_id or not knowledge_base_id:
+        raise ValueError(f"Agent {agent_id} does not have user_id or knowledge_base_id")
+
+    search = search_matched_knowledgeBases(query, knowledge_base_id)
+    content = get_response(query, search, agent_feature)
 
     return ContentResponse(
         content=content,

@@ -73,7 +73,6 @@ def generate_embedding(user_id, Knowledge_id):
             "success": False,
             "error": "No completed knowledge items found for this knowledge base."
         }
-        # content = "sdsd"
 
     # Concatenate all content for embedding
     content = "".join([item["content"] for item in items if item.get("content")])
@@ -81,7 +80,7 @@ def generate_embedding(user_id, Knowledge_id):
     content = content.replace("\n", " ")
     embedding = get_embedding(content)
     # print("Embedding: ", embedding)
-    update_response = supabase.table("knowledge_bases").update({"embedding": embedding}).eq('id', Knowledge_id).eq('user_id', user_id).execute()
+    supabase.table("knowledge_bases").update({"embedding": embedding, "metadata": content}).eq('id', Knowledge_id).eq('user_id', user_id).execute()
 
     return {
         "content": content,
@@ -90,29 +89,50 @@ def generate_embedding(user_id, Knowledge_id):
         "error": None
     }
 
-def search_documents(query, model="text-embedding-ada-002"):
+def search_matched_knowledgeBases(query, knowledge_base_id, model="text-embedding-ada-002"):
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_KEY")
     if url is None or key is None:
         raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
     supabase: Client = create_client(url, key)
     embedding = get_embedding(query, model)
+
+    # # Fetch user_id and knowledge_base_id from the agent table using agent_id
+    # agent_response = supabase.table("agents") \
+    #     .select("user_id, knowledge_base_id") \
+    #     .eq("id", agent_id) \
+    #     .single() \
+    #     .execute()
+
+    # if not agent_response.data:
+    #     raise ValueError(f"No agent found with id {agent_id}")
+
+    # user_id = agent_response.data.get("user_id")
+    # knowledge_base_id = agent_response.data.get("knowledge_base_id")
+
+    # if not user_id or not knowledge_base_id:
+    #     raise ValueError(f"Agent {agent_id} does not have user_id or knowledge_base_id")
+
     matches = supabase.rpc(
-        "match_documents",
-        {"query_embedding": embedding, "match_threshold": 0.7, "match_count": 6},
+        "match_knowledge_bases",
+        {
+            "query_embedding": embedding,
+            "knowledge_base_id": knowledge_base_id,
+            "match_threshold": 0.7,
+            "match_count": 6
+        }
     ).execute()
-    return matches
-    
+    return matches.data
     
 
-def get_response(prompt: str, matches: List[dict]):
+def get_response(prompt: str, matches: List[dict], agent_feature="You are a helpful assistant that answers questions using the provided context."):
     print("""Generate a response based on the prompt and matched documents using chat roles.""")
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     context = "\n".join([match['content'] for match in matches])
     
 
     messages: list[ChatCompletionMessageParam] = [
-        {"role": "system", "content": "You are a helpful assistant that answers questions using the provided context."},
+        {"role": "system", "content": agent_feature},
         {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {prompt}"}
     ]
 
