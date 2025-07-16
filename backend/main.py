@@ -10,7 +10,7 @@ import io
 from typing import Optional
 from firecrawl import FirecrawlApp, ScrapeOptions
 from config import FIRECRAWL_API_KEY, CRAWL_SETTINGS  # type: ignore
-from utils import generate_embedding, search_documents, get_response  # type: ignore
+from utils import generate_embedding, search_documents, get_response, sanitize_text  # type: ignore
 
 app = FastAPI(title="Knowledge Base Content Extractor", version="1.0.0")
 
@@ -65,10 +65,9 @@ async def extract_pdf(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Could not extract text from PDF")
         
         
-        pdf_contents = extracted_text.strip()
-        generate_embedding(pdf_contents)
+        pdf_contents = sanitize_text(extracted_text.strip())
 
-        print("pdf_contents:", pdf_contents)  # Debugging line
+        # print("pdf_contents:", pdf_contents)  # Debugging line
         return ContentResponse(
             content=extracted_text.strip(),
             title=file.filename or "Unknown PDF",
@@ -93,7 +92,11 @@ async def extract_url(request: URLRequest):
         # Initialize Firecrawl app
         app = FirecrawlApp(api_key=FIRECRAWL_API_KEY)
         scrape_options = ScrapeOptions(
-            formats=["markdown", "html"]
+            formats= [ 'markdown' ],
+            onlyMainContent= False,
+            excludeTags= [ 'path', 'img', 'svg' ],
+            parsePDF= True,
+            maxAge= 14400000
         )
         
         # Crawl the URL
@@ -119,7 +122,7 @@ async def extract_url(request: URLRequest):
             raise HTTPException(status_code=400, detail="Could not extract content from URL")
         
         url_contents = content.strip()
-        print("url_contents:", url_contents)  # Debugging line
+        # print("url_contents:", url_contents)  # Debugging line
 
         return ContentResponse(
             content=content.strip(),
@@ -134,6 +137,35 @@ async def extract_url(request: URLRequest):
             success=False,
             error=str(e)
         )
+
+        # generate_embedding(pdf_contents, user_id = "76e5a3a8-19ec-4fcd-9f2b-2955ce6c7ee6", Knowledge_name="123123")
+
+from fastapi import Body
+
+@app.post("/knowledge_embedding", response_model=ContentResponse)
+async def knowledge_embedding(
+    user_id: str = Body(..., embed=True),
+    knowledge_base_id: str = Body(..., embed=True)
+):
+    try:
+        # print("user: ", user_id, "\nknowledge_id: ", knowledge_base_id)
+        # Call generate_embedding from utils.py
+        # Assuming generate_embedding returns a dict with keys: content, title, success, error (optional)
+        result = generate_embedding(user_id=user_id, Knowledge_id=knowledge_base_id)
+        return ContentResponse(
+            content=result.get("content", ""),
+            title=result.get("title", ""),
+            success=result.get("success", True),
+            error=result.get("error", None)
+        )
+    except Exception as e:
+        return ContentResponse(
+            content="",
+            title="",
+            success=False,
+            error=str(e)
+        )
+
 
 @app.post("/prompt", response_model=ContentResponse)
 async def get_answer(prompt:SearchBody):
