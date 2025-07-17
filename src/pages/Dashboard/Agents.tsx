@@ -12,11 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useKnowledgeBases } from '@/hooks/useKnowledgeBases';
 import { useAgents } from '@/hooks/useAgents';
 import { AgentUsageDialog } from '@/components/AgentUsageDialog';
-import { Bot, Plus, Phone, PhoneCall, MessageSquare, Settings, Play, Upload, Edit, Trash2 } from 'lucide-react';
+import { AgentAvatarUpload } from '@/components/AgentAvatarUpload';
+import { Bot, Plus, Phone, PhoneCall, MessageSquare, Settings, Play, Upload, Edit, Trash2, User } from 'lucide-react';
 
 const DEFAULT_GREETING_TEMPLATE = `Hello! I'm your AI assistant. I'm here to help you with any questions you might have. How can I assist you today?`;
 
@@ -35,6 +37,7 @@ const Agents = () => {
     type: 'inbound' as 'inbound' | 'outbound',
     knowledge_base_id: '',
     status: 'active' as 'active' | 'inactive',
+    avatar_url: null as string | null,
   });
   const [promptData, setPromptData] = useState({
     type: 'manual' as 'manual' | 'pdf',
@@ -97,6 +100,7 @@ const Agents = () => {
       type: 'inbound',
       knowledge_base_id: '',
       status: 'active',
+      avatar_url: null,
     });
     setPromptData({
       type: 'manual',
@@ -164,6 +168,18 @@ const Agents = () => {
                     placeholder="Enter agent name"
                   />
                 </div>
+                
+                <div>
+                  <Label>Agent Avatar</Label>
+                  <div className="mt-2">
+                    <AgentAvatarUpload
+                      avatarUrl={newAgent.avatar_url}
+                      onAvatarChange={(url) => setNewAgent(prev => ({ ...prev, avatar_url: url }))}
+                      agentName={newAgent.name}
+                    />
+                  </div>
+                </div>
+                
                 <div>
                   <Label htmlFor="agent-description">Description</Label>
                   <Textarea
@@ -296,6 +312,15 @@ const Agents = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
+                    <Avatar className="w-8 h-8">
+                      {agent.avatar_url ? (
+                        <AvatarImage src={agent.avatar_url} alt={agent.name} />
+                      ) : (
+                        <AvatarFallback>
+                          <User className="w-4 h-4" />
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
                     <div className="p-2 rounded-lg bg-primary/10">
                       {agent.type === 'inbound' ? (
                         <Phone className="w-4 h-4 text-primary" />
@@ -393,6 +418,18 @@ const Agents = () => {
                     placeholder="Enter agent name"
                   />
                 </div>
+                
+                <div>
+                  <Label>Agent Avatar</Label>
+                  <div className="mt-2">
+                    <AgentAvatarUpload
+                      avatarUrl={editingAgent.avatar_url}
+                      onAvatarChange={(url) => setEditingAgent(prev => ({ ...prev, avatar_url: url }))}
+                      agentName={editingAgent.name}
+                    />
+                  </div>
+                </div>
+                
                 <div>
                   <Label htmlFor="edit-agent-description">Description</Label>
                   <Textarea
