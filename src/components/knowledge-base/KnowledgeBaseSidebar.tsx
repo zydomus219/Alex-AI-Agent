@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Plus, Database, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useKnowledgeBases } from '@/hooks/useKnowledgeBases';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -38,7 +37,7 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
     }
 
     try {
-      const newKb = await createKnowledgeBase.mutateAsync({
+      await createKnowledgeBase.mutateAsync({
         name: newKnowledgeBaseName.trim(),
         description: newKnowledgeBaseDescription.trim() || null,
       });
@@ -46,9 +45,6 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
       setNewKnowledgeBaseName('');
       setNewKnowledgeBaseDescription('');
       setIsCreateDialogOpen(false);
-      
-      // Focus on the newly created knowledge base
-      onSelectKnowledgeBase(newKb.id);
       
       toast({
         title: "Success",
@@ -70,15 +66,6 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
 
     try {
       await deleteKnowledgeBase.mutateAsync(id);
-      
-      // If the deleted KB was selected, focus on the next available one
-      if (selectedKnowledgeBaseId === id) {
-        const remainingKbs = knowledgeBases.filter(kb => kb.id !== id);
-        if (remainingKbs.length > 0) {
-          onSelectKnowledgeBase(remainingKbs[0].id);
-        }
-      }
-      
       toast({
         title: "Success",
         description: "Knowledge base deleted successfully",

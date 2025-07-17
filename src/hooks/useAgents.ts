@@ -13,7 +13,6 @@ export interface Agent {
   knowledge_base_id: string;
   prompt_content: string | null;
   status: 'active' | 'inactive';
-  avatar_url: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;

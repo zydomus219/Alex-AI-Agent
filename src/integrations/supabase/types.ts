@@ -63,7 +63,6 @@ export type Database = {
       }
       knowledge_bases: {
         Row: {
-          content: string | null
           created_at: string
           description: string | null
           embedding: string | null
@@ -73,7 +72,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          content?: string | null
           created_at?: string
           description?: string | null
           embedding?: string | null
@@ -83,7 +81,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          content?: string | null
           created_at?: string
           description?: string | null
           embedding?: string | null
@@ -143,47 +140,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      match_documents: {
-        Args:
-          | {
-              query_embedding: string
-              knowledge_base_id: number
-              match_threshold?: number
-              match_count?: number
-            }
-          | {
-              query_embedding: string
-              knowledge_base_id: string
-              match_threshold: number
-              match_count: number
-            }
-        Returns: {
-          id: string
-          content: string
-          similarity: number
-        }[]
-      }
-      match_knowledge_bases: {
-        Args:
-          | {
-              query_embedding: string
-              knowledge_base_id: string
-              match_threshold: number
-              match_count: number
-            }
-          | {
-              query_embedding: string
-              user_id: string
-              knowledge_base_id: string
-              match_threshold: number
-              match_count: number
-            }
-        Returns: {
-          id: string
-          content: string
-          similarity: number
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
