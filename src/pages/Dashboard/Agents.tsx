@@ -12,11 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useKnowledgeBases } from '@/hooks/useKnowledgeBases';
 import { useAgents } from '@/hooks/useAgents';
 import { AgentUsageDialog } from '@/components/AgentUsageDialog';
-import { Bot, Plus, Phone, PhoneCall, MessageSquare, Settings, Play, Upload, Edit, Trash2 } from 'lucide-react';
+import { Bot, Plus, Phone, PhoneCall, MessageSquare, Settings, Play, Upload, Edit, Trash2, Loader2 } from 'lucide-react';
 
 const DEFAULT_GREETING_TEMPLATE = `Hello! I'm your AI assistant. I'm here to help you with any questions you might have. How can I assist you today?`;
 
@@ -29,6 +30,8 @@ const Agents = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<any>(null);
   const [usageAgent, setUsageAgent] = useState<any>(null);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [creationProgress, setCreationProgress] = useState(0);
   const [newAgent, setNewAgent] = useState({
     name: '',
     description: '',
@@ -63,10 +66,37 @@ const Agents = () => {
     }
 
     try {
+      setIsCreatingAgent(true);
+      
+      // Start progress animation
+      setCreationProgress(0);
+      const progressInterval = setInterval(() => {
+        setCreationProgress(prev => {
+          // Slowly increase until 90%, the final jump to 100% will happen when done
+          if (prev < 90) {
+            return prev + Math.random() * 10;
+          }
+          return prev;
+        });
+      }, 800);
+      
       await createAgentWithPrompt(newAgent, promptData);
-      resetForm();
-      setIsCreateDialogOpen(false);
+      
+      // Set progress to 100% when done
+      clearInterval(progressInterval);
+      setCreationProgress(100);
+      
+      // Small delay to show the 100% progress before closing
+      setTimeout(() => {
+        resetForm();
+        setIsCreatingAgent(false);
+        setIsCreateDialogOpen(false);
+      }, 500);
+      
     } catch (error) {
+      // Handle error
+      setIsCreatingAgent(false);
+      setCreationProgress(0);
       // Error is handled in the hook
     }
   };
@@ -162,6 +192,7 @@ const Agents = () => {
                     value={newAgent.name}
                     onChange={(e) => setNewAgent(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Enter agent name"
+                    disabled={isCreatingAgent}
                   />
                 </div>
                 <div>
@@ -171,11 +202,16 @@ const Agents = () => {
                     value={newAgent.description}
                     onChange={(e) => setNewAgent(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Describe what this agent does"
+                    disabled={isCreatingAgent}
                   />
                 </div>
                 <div>
                   <Label htmlFor="agent-type">Agent Type</Label>
-                  <Select value={newAgent.type} onValueChange={(value: 'inbound' | 'outbound') => setNewAgent(prev => ({ ...prev, type: value }))}>
+                  <Select 
+                    value={newAgent.type} 
+                    onValueChange={(value: 'inbound' | 'outbound') => setNewAgent(prev => ({ ...prev, type: value }))}
+                    disabled={isCreatingAgent}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -187,7 +223,11 @@ const Agents = () => {
                 </div>
                 <div>
                   <Label htmlFor="knowledge-base">Knowledge Base</Label>
-                  <Select value={newAgent.knowledge_base_id} onValueChange={(value) => setNewAgent(prev => ({ ...prev, knowledge_base_id: value }))}>
+                  <Select 
+                    value={newAgent.knowledge_base_id} 
+                    onValueChange={(value) => setNewAgent(prev => ({ ...prev, knowledge_base_id: value }))}
+                    disabled={isCreatingAgent}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder={kbLoading ? "Loading..." : "Select a knowledge base"} />
                     </SelectTrigger>
@@ -206,7 +246,11 @@ const Agents = () => {
                 
                 <div>
                   <Label>Prompts</Label>
-                  <Tabs value={promptData.type} onValueChange={(value) => setPromptData(prev => ({ ...prev, type: value as 'manual' | 'pdf' }))}>
+                  <Tabs 
+                    value={promptData.type} 
+                    onValueChange={(value) => setPromptData(prev => ({ ...prev, type: value as 'manual' | 'pdf' }))}
+                    disabled={isCreatingAgent}
+                  >
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="manual">Manual Input</TabsTrigger>
                       <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
@@ -221,6 +265,7 @@ const Agents = () => {
                           onChange={(e) => setPromptData(prev => ({ ...prev, greetingPrompt: e.target.value }))}
                           placeholder="Enter greeting prompt template"
                           className="min-h-[80px]"
+                          disabled={isCreatingAgent}
                         />
                       </div>
                       <div>
@@ -231,6 +276,7 @@ const Agents = () => {
                           onChange={(e) => setPromptData(prev => ({ ...prev, messagePrompt: e.target.value }))}
                           placeholder="Enter message prompt template"
                           className="min-h-[80px]"
+                          disabled={isCreatingAgent}
                         />
                       </div>
                     </TabsContent>
@@ -245,6 +291,7 @@ const Agents = () => {
                             accept=".pdf"
                             onChange={handleFileUpload}
                             className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
+                            disabled={isCreatingAgent}
                           />
                           <Upload className="w-4 h-4" />
                         </div>
@@ -258,15 +305,44 @@ const Agents = () => {
                   </Tabs>
                 </div>
                 
+                {/* Creation progress indicator */}
+                {isCreatingAgent && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Creating agent & embedding knowledge...</span>
+                      <span>{Math.round(creationProgress)}%</span>
+                    </div>
+                    <Progress value={creationProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground">
+                      This might take a moment as we're processing your knowledge base data.
+                    </p>
+                  </div>
+                )}
+                
                 <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    resetForm();
-                  }}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      resetForm();
+                    }}
+                    disabled={isCreatingAgent}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={handleCreateAgent}>
-                    Create Agent
+                  <Button 
+                    onClick={handleCreateAgent} 
+                    disabled={isCreatingAgent}
+                    className="min-w-[100px]"
+                  >
+                    {isCreatingAgent ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Creating...
+                      </span>
+                    ) : (
+                      'Create Agent'
+                    )}
                   </Button>
                 </div>
               </div>

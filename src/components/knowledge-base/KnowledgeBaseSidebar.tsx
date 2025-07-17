@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Database, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useKnowledgeBases } from '@/hooks/useKnowledgeBases';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -26,6 +26,13 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
     deleteKnowledgeBase,
   } = useKnowledgeBases();
 
+  // Focus on newly created knowledge base when the list changes
+  useEffect(() => {
+    if (knowledgeBases.length > 0 && !selectedKnowledgeBaseId) {
+      onSelectKnowledgeBase(knowledgeBases[0].id);
+    }
+  }, [knowledgeBases, selectedKnowledgeBaseId, onSelectKnowledgeBase]);
+
   const handleCreateKnowledgeBase = async () => {
     if (!newKnowledgeBaseName.trim()) {
       toast({
@@ -37,7 +44,7 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
     }
 
     try {
-      await createKnowledgeBase.mutateAsync({
+      const newKnowledgeBase = await createKnowledgeBase.mutateAsync({
         name: newKnowledgeBaseName.trim(),
         description: newKnowledgeBaseDescription.trim() || null,
       });
@@ -45,6 +52,11 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
       setNewKnowledgeBaseName('');
       setNewKnowledgeBaseDescription('');
       setIsCreateDialogOpen(false);
+      
+      // Auto-focus the newly created knowledge base
+      if (newKnowledgeBase && newKnowledgeBase.id) {
+        onSelectKnowledgeBase(newKnowledgeBase.id);
+      }
       
       toast({
         title: "Success",
@@ -65,7 +77,30 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
     }
 
     try {
+      // Find the index of the knowledge base being deleted
+      const deleteIndex = knowledgeBases.findIndex(kb => kb.id === id);
+      
+      // Determine which knowledge base to select after deletion
+      let nextSelectId: string | undefined;
+      
+      if (knowledgeBases.length > 1) {
+        // If there's a next knowledge base, select it
+        if (deleteIndex < knowledgeBases.length - 1) {
+          nextSelectId = knowledgeBases[deleteIndex + 1].id;
+        } 
+        // Otherwise, select the previous one
+        else if (deleteIndex > 0) {
+          nextSelectId = knowledgeBases[deleteIndex - 1].id;
+        }
+      }
+      
       await deleteKnowledgeBase.mutateAsync(id);
+      
+      // Select the next knowledge base if available
+      if (nextSelectId && id === selectedKnowledgeBaseId) {
+        onSelectKnowledgeBase(nextSelectId);
+      }
+      
       toast({
         title: "Success",
         description: "Knowledge base deleted successfully",
