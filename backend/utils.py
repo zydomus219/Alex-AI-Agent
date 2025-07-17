@@ -80,7 +80,7 @@ def generate_embedding(user_id, Knowledge_id):
     content = content.replace("\n", " ")
     embedding = get_embedding(content)
     # print("Embedding: ", embedding)
-    supabase.table("knowledge_bases").update({"embedding": embedding, "metadata": content}).eq('id', Knowledge_id).eq('user_id', user_id).execute()
+    supabase.table("knowledge_bases").update({"embedding": embedding, "content": content}).eq('id', Knowledge_id).eq('user_id', user_id).execute()
 
     return {
         "content": content,
