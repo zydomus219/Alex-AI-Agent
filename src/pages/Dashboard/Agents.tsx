@@ -249,11 +249,10 @@ const Agents = () => {
                   <Tabs 
                     value={promptData.type} 
                     onValueChange={(value) => setPromptData(prev => ({ ...prev, type: value as 'manual' | 'pdf' }))}
-                    disabled={isCreatingAgent}
                   >
                     <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="manual">Manual Input</TabsTrigger>
-                      <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
+                      <TabsTrigger value="manual" disabled={isCreatingAgent}>Manual Input</TabsTrigger>
+                      <TabsTrigger value="pdf" disabled={isCreatingAgent}>Upload PDF</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="manual" className="space-y-4">
@@ -406,7 +405,7 @@ const Agents = () => {
                       onClick={() => setUsageAgent(agent)}
                     >
                       <Play className="w-4 h-4" />
-                      Use Agent
+                      Test Agent
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
