@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Mic, Phone, PhoneCall, Send, MicOff } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from '@/hooks/useAgents';
+import { queryAgentResponse } from '@/services/contentExtractor';
 
 interface AgentUsageDialogProps {
   agent: Agent | null;
@@ -29,6 +30,7 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
   const [inputMessage, setInputMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   if (!agent) return null;
@@ -67,7 +69,7 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
     setMessages([greetingMessage]);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
@@ -79,17 +81,45 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setIsLoading(true);
 
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: `Thank you for your message. I'm ${agent.name} and I'm here to help you based on my knowledge from "${agent.name}" knowledge base. How can I assist you further?`,
-        sender: 'agent',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
+    // // Simulate agent response
+    // setTimeout(() => {
+    //   const agentResponse: Message = {
+    //     id: (Date.now() + 1).toString(),
+    //     text: `Thank you for your message. I'm ${agent.name} and I'm here to help you based on my knowledge from "${agent.name}" knowledge base. How can I assist you further?`,
+    //     sender: 'agent',
+    //     timestamp: new Date(),
+    //   };
+    //   setMessages(prev => [...prev, agentResponse]);
+    // }, 1000);
+
+    try {
+      const response = await queryAgentResponse({ agentId: agent.id, message: userMessage.text });
+      if (response.success && response.response) {
+        const agentResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.response,
+          sender: 'agent',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, agentResponse]);
+      } else {
+        toast({
+          title: 'Agent Error',
+          description: response.error || 'Failed to get agent response.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Agent Error',
+        description: error.message || 'Failed to get agent response.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleStartListening = () => {
@@ -303,7 +333,7 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           className="flex-1"
         />
-        <Button onClick={handleSendMessage} disabled={!inputMessage.trim()}>
+        <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isLoading}>
           <Send className="w-4 h-4" />
         </Button>
       </div>

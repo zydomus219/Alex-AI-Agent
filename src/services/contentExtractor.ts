@@ -61,3 +61,29 @@ export const extractURLContent = async (url: string): Promise<ContentExtractionR
     };
   }
 };
+
+export const queryAgentResponse = async ({ agentId, message }: { agentId: string, message: string }) => {
+  try {
+    const response = await fetch(`${config.backend.url}/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ agent_id: agentId, message }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Agent query error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      response: '',
+    };
+  }
+};
