@@ -1,6 +1,6 @@
 
 import uuid
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Body
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
@@ -141,8 +141,6 @@ async def extract_url(request: URLRequest):
         )
 
         # generate_embedding(pdf_contents, user_id = "76e5a3a8-19ec-4fcd-9f2b-2955ce6c7ee6", Knowledge_name="123123")
-
-from fastapi import Body
 
 @app.post("/knowledge_embedding", response_model=ContentResponse)
 async def knowledge_embedding(
