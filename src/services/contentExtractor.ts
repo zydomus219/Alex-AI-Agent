@@ -69,7 +69,7 @@ export const queryAgentResponse = async ({ agentId, message }: { agentId: string
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ agent_id: agentId, message }),
+      body: JSON.stringify({ agent_id: agentId, query: message }),
     });
 
     if (!response.ok) {

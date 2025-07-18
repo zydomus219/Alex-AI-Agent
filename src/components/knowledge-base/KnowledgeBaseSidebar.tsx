@@ -108,7 +108,7 @@ export const KnowledgeBaseSidebar = ({ selectedKnowledgeBaseId, onSelectKnowledg
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete knowledge base",
+        description: "Failed to delete knowledge base. This knowledge base may be in use by one or more agents. Please remove it from any agents before deleting.",
         variant: "destructive",
       });
     }

@@ -26,6 +26,7 @@ interface Message {
 
 export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogProps) => {
   const [mode, setMode] = useState<'selection' | 'voice' | 'chat'>('selection');
+  // const [mode, setMode] = useState<'selection' | 'chat'>('selection');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -96,10 +97,10 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
 
     try {
       const response = await queryAgentResponse({ agentId: agent.id, message: userMessage.text });
-      if (response.success && response.response) {
+      if (response.success && response.content) {
         const agentResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: response.response,
+          text: response.content,
           sender: 'agent',
           timestamp: new Date(),
         };
@@ -188,7 +189,7 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
       </Card>
 
       <div className="grid gap-3">
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={handleVoiceCall}>
+        {/* <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={handleVoiceCall}>
           <CardContent className="flex items-center gap-4 p-4">
             <div className="p-3 rounded-lg bg-blue-500/10">
               <Mic className="w-6 h-6 text-blue-500" />
@@ -200,7 +201,7 @@ export const AgentUsageDialog = ({ agent, isOpen, onClose }: AgentUsageDialogPro
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={handleTextChat}>
           <CardContent className="flex items-center gap-4 p-4">

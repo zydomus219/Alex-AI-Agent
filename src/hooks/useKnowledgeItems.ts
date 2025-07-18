@@ -100,7 +100,7 @@ export const useKnowledgeItems = (knowledgeBaseId?: string) => {
         .from('knowledge_items')
         .delete()
         .eq('id', id);
-      
+            
       if (error) throw error;
     },
     onSuccess: () => {
