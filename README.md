@@ -119,7 +119,7 @@ Get Firecrawl keys at [firecrawl.dev](https://firecrawl.dev/). Ensure the backen
 
 ## 🖼 Screenshots
 
-- **Pitch deck** – [pitchdeck.pdf](./public/pitchdeck.pdf)
+- **Pitch deck** – [pitchdeck.pdf](https://github.com/zydomus219/Alex-AI-Agent/raw/main/public/ALEX%20AI%20PITCH%20DECK%20ENG.pdf)
 - **Study case** – ![Study case](https://raw.githubusercontent.com/zydomus219/Alex-AI-Agent/refs/heads/main/public/Case%20Study.png)
 
 Add demo images, GIFs, or UI preview screenshots here.
