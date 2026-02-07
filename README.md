@@ -1,118 +1,157 @@
-# Knowledge Base Content Extractor Frontend
+# 🧭 Knowledge Base Content Extractor
 
-A React-based frontend application for extracting content from PDF files and websites using a FastAPI backend.
+A React + FastAPI app that extracts content from PDFs and websites, builds searchable knowledge bases with embeddings, and answers questions via AI—all through a modern UI.
 
-## Project info
+---
 
-**URL**: https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99
+## 📚 Table of Contents
 
-## Setup
+[About](#-about)  
+[Features](#-features)  
+[Tech Stack](#-tech-stack)  
+[Installation](#-installation)  
+[Usage](#-usage)  
+[Configuration](#-configuration)  
+[Screenshots](#-screenshots)  
+[API Documentation](#-api-documentation)  
+[Contact](#-contact)
 
-### 1. Install Dependencies
+---
 
-```sh
+## 🧩 About
+
+This project provides an intuitive interface for managing knowledge bases: upload PDFs or paste URLs to extract content, store and embed it (Supabase + OpenAI), then query it through configurable agents. It solves the need to turn documents and web pages into searchable, AI-ready knowledge without manual copying—useful for support bots, internal wikis, and research workflows.
+
+---
+
+## ✨ Features
+
+- **PDF content extraction** – Upload PDFs and get clean text using PyPDF2.
+- **Web content extraction** – Scrape URLs with Firecrawl (markdown/HTML, optional PDF parsing).
+- **Knowledge bases & embeddings** – Store content in Supabase and generate embeddings for semantic search.
+- **AI-powered Q&A** – Query knowledge bases via agents with configurable prompts (OpenAI).
+- **Modern React UI** – Vite + TypeScript, shadcn/ui, Tailwind CSS, React Router, TanStack Query.
+- **CORS & error handling** – Backend ready for frontend integration with structured API responses.
+
+---
+
+## 🧠 Tech Stack
+
+**Languages:** TypeScript, JavaScript, Python  
+**Frameworks:** React, FastAPI, Vite  
+**Database:** Supabase (PostgreSQL)  
+**Libraries:** PyPDF2, Firecrawl, OpenAI, BeautifulSoup4, React Hook Form, Zod  
+**Tools:** Tailwind CSS, shadcn-ui, TanStack Query, Uvicorn, ESLint
+
+---
+
+## ⚙️ Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/AlexAI-william.git
+
+# Navigate to the project directory
+cd AlexAI-William
+
+# Install frontend dependencies
 npm install
 ```
 
-### 2. Configure Environment Variables
+**Backend (optional, for local API):**
 
-1. Copy the example environment file:
-   ```sh
-   cp env.example .env
-   ```
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-2. Edit the `.env` file and configure your backend URL:
-   ```
-   VITE_BACKEND_URL=http://localhost:8000
-   ```
+---
 
-   **Note**: Make sure your backend server is running on the specified URL.
+## 🚀 Usage
 
-### 3. Start Development Server
+**1. Configure environment** (see [Configuration](#-configuration)), then start the backend (if running locally):
 
-```sh
+```bash
+cd backend
+python main.py
+```
+
+Backend runs at **http://localhost:8000**.
+
+**2. Start the frontend:**
+
+```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`
+Then open your browser at:
 
-## How can I edit this code?
+👉 [http://localhost:5173](http://localhost:5173)
 
-There are several ways of editing your application.
+(Vite may use port 8080 if configured in `vite.config.ts`.)
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99) and start prompting.
+## 🧾 Configuration
 
-Changes made via Lovable will be committed automatically to this repo.
+Create a `.env` file in the project root (copy from `env.example`):
 
-**Use your preferred IDE**
+**Frontend (.env):**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Configure environment variables (see above)
-
-# Step 5: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+VITE_BACKEND_URL=http://localhost:8000
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-**Edit a file directly in GitHub**
+**Backend (backend/.env):**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+FIRECRAWL_API_KEY=your_firecrawl_api_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_service_key
+OPENAI_API_KEY=your_openai_api_key
+```
 
-**Use GitHub Codespaces**
+Get Firecrawl keys at [firecrawl.dev](https://firecrawl.dev/). Ensure the backend URL in the frontend matches where the API is running.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## Environment Variables
+## 🖼 Screenshots
 
-The application uses the following environment variables:
+- **Pitch deck** – [pitchdeck.pdf](./pitchdeck.pdf)
+- **Study case** – ![Study case](./studycase.png)
 
-- `VITE_BACKEND_URL`: URL of the FastAPI backend server (default: http://localhost:8000)
-- `VITE_SUPABASE_URL`: Supabase project URL (optional)
-- `VITE_SUPABASE_ANON_KEY`: Supabase anonymous key (optional)
+Add demo images, GIFs, or UI preview screenshots here.
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 📜 API Documentation
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-- React Router DOM
-- React Hook Form
-- TanStack Query
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Welcome message |
+| POST | `/extract/pdf` | Extract text from uploaded PDF (multipart form) |
+| POST | `/extract/url` | Extract content from a URL (JSON: `{"url": "https://..."}`) |
+| POST | `/knowledge_embedding` | Generate embeddings for a knowledge base (body: `user_id`, `knowledge_base_id`) |
+| POST | `/query` | Get AI answer from knowledge base (body: `query`, `agent_id`) |
 
-## How can I deploy this project?
+Responses use a common shape: `{ content, title, success, error? }`.
 
-Simply open [Lovable](https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 📬 Contact
 
-Yes, you can!
+**Author:** zydomus  
+**Email:** luckystar000628@gmail.com  
+**GitHub:** [@zydomus](https://github.com/zydomus)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🌟 Acknowledgements
+
+- [Lovable](https://lovable.dev) – Project hosting and deployment (Lovable project: [link](https://lovable.dev/projects/be583b43-bf66-4f99-8e7c-be921d224e99))
+- [Firecrawl](https://firecrawl.dev) – Web scraping and content extraction
+- [shadcn/ui](https://ui.shadcn.com) – UI components
+- [Supabase](https://supabase.com) – Database and auth
+- [OpenAI](https://openai.com) – Embeddings and chat completions
